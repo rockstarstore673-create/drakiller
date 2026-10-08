@@ -5,7 +5,7 @@ export async function GET(req: NextRequest) {
   const repo = req.nextUrl.searchParams.get('repo');
 
   if (!owner || !repo) {
-    return NextResponse.json({ error: 'owner dan repo harus diisi' }, { status: 400 });
+    return NextResponse.json({ error: 'owner dan repo wajib diisi' }, { status: 400 });
   }
 
   const token = process.env.GITHUB_TOKEN || '';
@@ -22,12 +22,18 @@ export async function GET(req: NextRequest) {
     });
 
     if (!res.ok) {
-      return NextResponse.json({ error: 'Repository tidak ditemukan atau rate limit GitHub tercapai.' }, { status: res.status });
+      throw new Error(`GitHub API error: ${res.status}`);
     }
 
     const data = await res.json();
     return NextResponse.json(data);
   } catch (error: any) {
-    return NextResponse.json({ error: 'GitHub repository lookup failed', message: error.message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Repository lookup gagal',
+        message: error.message,
+      },
+      { status: 500 }
+    );
   }
 }

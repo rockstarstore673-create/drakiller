@@ -1,38 +1,60 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
-  const q = req.nextUrl.searchParams.get('q') || 'drakiller';
+  const q = req.nextUrl.searchParams.get('q') || '';
 
-  if (!process.env.SEARCH_API_URL || !process.env.SEARCH_API_KEY) {
+  if (!q.trim()) {
+    return NextResponse.json({ results: [], query: q, error: null });
+  }
+
+  if (!process.env.TAVILY_API_KEY) {
     return NextResponse.json(
       {
-        error: 'Search provider belum dikonfigurasi. Tambahkan SEARCH_API_URL dan SEARCH_API_KEY di environment variable.',
+        error: 'TAVILY_API_KEY belum dikonfigurasi. Tambahkan key di environment variable.',
         query: q,
-        fallback: true,
+        results: [],
       },
       { status: 503 }
     );
   }
 
   try {
-    const res = await fetch(`${process.env.SEARCH_API_URL}?q=${encodeURIComponent(q)}`, {
+    const res = await fetch('https://api.tavily.com/search', {
+      method: 'POST',
       headers: {
-        Authorization: `Bearer ${process.env.SEARCH_API_KEY}`,
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.TAVILY_API_KEY}`,
       },
-      cache: 'no-store',
+      body: JSON.stringify({
+        query: q,
+        max_results: 8,
+        search_depth: 'basic',
+      }),
     });
 
     if (!res.ok) {
-      throw new Error('Search provider failed');
+      const text = await res.text();
+      throw new Error(`Tavily failed: ${text}`);
     }
 
     const data = await res.json();
-    return NextResponse.json(data);
+    const results = (data.results || []).map((item: any, index: number) => ({
+      id: item.url || `${index}`,
+      title: item.title || 'Untitled result',
+      description: item.content || item.snippet || 'No description available',
+      url: item.url,
+      type: 'search',
+      tags: item.url ? ['web'] : [],
+    }));
+
+    return NextResponse.json({ results, query: q, error: null });
   } catch (error: any) {
     return NextResponse.json(
       {
-        error: 'Search provider gagal dipanggil. Periksa konfigurasi API search.',
+        error: 'Tavily search gagal. Cek API key dan konfigurasi provider.',
         query: q,
+        results: [],
+        message: error.message,
       },
       { status: 500 }
     );

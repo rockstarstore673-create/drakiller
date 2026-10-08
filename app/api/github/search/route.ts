@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
-  const q = req.nextUrl.searchParams.get('q') || 'next.js';
+  const q = req.nextUrl.searchParams.get('q') || 'drakiller';
 
   const token = process.env.GITHUB_TOKEN || '';
   const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&per_page=5`;
@@ -17,13 +17,18 @@ export async function GET(req: NextRequest) {
     });
 
     if (!res.ok) {
-      const msg = await res.text();
-      return NextResponse.json({ error: 'GitHub API limit or configuration issue', detail: msg }, { status: res.status });
+      throw new Error(`GitHub API error: ${res.status}`);
     }
 
     const data = await res.json();
-    return NextResponse.json(data);
+    return NextResponse.json({ items: data.items || [] });
   } catch (error: any) {
-    return NextResponse.json({ error: 'GitHub search failed', message: error.message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'GitHub search gagal',
+        message: error.message,
+      },
+      { status: 500 }
+    );
   }
 }
