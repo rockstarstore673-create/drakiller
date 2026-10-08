@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #070b14;
+  --foreground: #e6edf7;
+  --muted: #92a3b8;
+  --panel: rgba(12, 18, 31, 0.8);
+  --panel-strong: rgba(9, 15, 26, 0.98);
+  --border: rgba(148, 163, 184, 0.18);
+  --brand: #4eb2ff;
+  --brand-strong: #1c8dff;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--foreground);
+  background:
+    radial-gradient(circle at top, rgba(30, 110, 255, 0.18), transparent 38%),
+    linear-gradient(180deg, #060a12 0%, #090d16 100%);
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(30, 120, 255, 0.4);
+}
+
+@layer components {
+  .glass-panel {
+    @apply rounded-2xl border border-slate-700/60 bg-slate-950/60 backdrop-blur-xl shadow-glow;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-300 focus:ring-offset-2 focus:ring-offset-slate-950;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-900/80 px-4 py-2.5 text-sm font-medium text-slate-100 transition hover:border-slate-500 hover:bg-slate-800/80;
+  }
+
+  .section-title {
+    @apply text-3xl font-bold tracking-tight text-white md:text-4xl;
+  }
+
+  .muted {
+    @apply text-sm text-slate-400;
+  }
+}
