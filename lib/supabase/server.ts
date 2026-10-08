@@ -1,11 +1,11 @@
-// lib/supabase/server.ts
 import { createServerClient, type CookieOptions } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
+import type { Database } from '@/types/database';
 
 export function createClient() {
   const cookieStore = cookies();
 
-  return createServerClient(
+  return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -17,17 +17,17 @@ export function createClient() {
           try {
             cookieStore.set(name, value, options);
           } catch (error) {
-            console.error('Error setting cookie:', error);
+            // ignore error
           }
         },
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.delete(name);
           } catch (error) {
-            console.error('Error removing cookie:', error);
+            // ignore error
           }
-        }
-      }
+        },
+      },
     }
   );
 }
