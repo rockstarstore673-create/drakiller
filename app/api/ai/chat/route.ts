@@ -1,6 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, getRequestIdentifier, rateLimitResponse } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
+  const identifier = getRequestIdentifier(req);
+  const rateLimit = checkRateLimit({
+    identifier,
+    key: 'groq-chat',
+    limit: 10,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit, 'AI chat rate limit exceeded. Please wait before trying again.');
+  }
+
   const body = await req.json().catch(() => ({}));
   const prompt = body.prompt || '';
 
