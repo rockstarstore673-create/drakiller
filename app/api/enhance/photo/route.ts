@@ -1,9 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, getRequestIdentifier, rateLimitResponse } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
+  const identifier = getRequestIdentifier(req);
+  const rateLimit = checkRateLimit({
+    identifier,
+    key: 'replicate-photo',
+    limit: 5,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit, 'Photo enhancement rate limit exceeded. Please wait before trying again.');
+  }
+
   try {
     const body = await req.json();
-    const { imageUrl, scale = 2 } = body;
+    const { imageUrl } = body;
 
     if (!imageUrl) {
       return NextResponse.json({ error: 'imageUrl harus diisi' }, { status: 400 });
@@ -57,6 +70,18 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  const identifier = getRequestIdentifier(req);
+  const rateLimit = checkRateLimit({
+    identifier,
+    key: 'replicate-photo-status',
+    limit: 20,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit, 'Photo status poll rate limit exceeded. Please wait before trying again.');
+  }
+
   const predictionId = req.nextUrl.searchParams.get('prediction_id');
   if (!predictionId) {
     return NextResponse.json({ error: 'prediction_id harus diisi' }, { status: 400 });
