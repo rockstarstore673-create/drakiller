@@ -1,7 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, getRequestIdentifier, rateLimitResponse } from '@/lib/rate-limit';
 
 export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get('q') || 'drakiller';
+
+  const identifier = getRequestIdentifier(req);
+  const rateLimit = checkRateLimit({
+    identifier,
+    key: 'github-search',
+    limit: 20,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit, 'GitHub search rate limit exceeded. Please wait before trying again.');
+  }
 
   const token = process.env.GITHUB_TOKEN || '';
   const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&per_page=5`;
