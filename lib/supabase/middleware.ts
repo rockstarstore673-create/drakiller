@@ -1,0 +1,38 @@
+// lib/supabase/middleware.ts
+import { type NextRequest, NextResponse } from 'next/server';
+import { createServerClient, type CookieOptions } from '@supabase/auth-helpers-nextjs';
+
+export async function updateSession(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({
+    request,
+  });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          supabaseResponse.cookies.set({
+            name,
+            value,
+            ...options,
+          });
+        },
+        remove(name: string, options: CookieOptions) {
+          supabaseResponse.cookies.set({
+            name,
+            value: '',
+            ...options,
+          });
+        },
+      },
+    }
+  );
+
+  await supabase.auth.getSession();
+  return supabaseResponse;
+}
