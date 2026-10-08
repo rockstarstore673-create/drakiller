@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, ShieldCheck, Users, Cpu, Gauge, BarChart3 } from 'lucide-react';
+import { ArrowRight, BarChart3, Cpu, Gauge, ShieldCheck, Users } from 'lucide-react';
 
 const adminStats = [
   { label: 'Pengguna aktif', value: '12.4K' },
@@ -18,6 +18,15 @@ const modules = [
   { title: 'Tools', description: 'Enable/disable feature, maintenance mode.' },
   { title: 'Security', description: 'Audit logs dan laporan abuse.' },
 ];
+
+function getModuleIcon(title: string) {
+  if (title === 'Users') return <Users className="h-5 w-5" />;
+  if (title === 'System') return <Gauge className="h-5 w-5" />;
+  if (title === 'AI') return <Cpu className="h-5 w-5" />;
+  if (title === 'GitHub') return <BarChart3 className="h-5 w-5" />;
+  if (title === 'Security') return <ShieldCheck className="h-5 w-5" />;
+  return <Gauge className="h-5 w-5" />;
+}
 
 export default function AdminDashboardPage() {
   return (
@@ -46,7 +55,7 @@ export default function AdminDashboardPage() {
           {modules.map((item) => (
             <div key={item.title} className="glass-panel p-6">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
-                {item.title === 'Users' ? <Users className="h-5 w-5" /> : item.title === 'System' ? <Gauge className="h-5 w-5" /> : item.title === 'AI' ? <Cpu className="h-5 w-5" /> : item.title === 'GitHub' ? <BarChart3 className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
+                {getModuleIcon(item.title)}
               </div>
               <h2 className="text-xl font-semibold text-white">{item.title}</h2>
               <p className="mt-2 text-slate-400">{item.description}</p>
